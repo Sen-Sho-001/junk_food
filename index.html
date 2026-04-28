@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b85c38">
+<title>JUNK FOOD お気に入り</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="JF お気に入り">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4efe6;
+  --paper: #fdfaf2;
+  --ink: #1f2730;
+  --ink-soft: #5c6670;
+  --rust: #b85c38;
+  --rust-deep: #8e3e22;
+  --teal: #3d6864;
+  --green: #2d6a4f;
+  --line: #d8cfbb;
+  --line-soft: #e8e0cc;
+  --shadow: 0 1px 2px rgba(31,39,48,0.06), 0 4px 12px rgba(31,39,48,0.04);
+  --shadow-hover: 0 2px 8px rgba(31,39,48,0.12), 0 8px 24px rgba(31,39,48,0.08);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+.container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+header {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.title {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.title-en {
+  font-family: 'Shippori Mincho', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--rust);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.stats { font-size: 13px; color: var(--ink-soft); }
+.stats strong { color: var(--ink); font-weight: 700; font-size: 16px; }
+
+/* Sync badge */
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  color: var(--ink-soft);
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.sync-badge:hover { border-color: var(--line); }
+.sync-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+}
+.sync-badge.connected { background: rgba(45,106,79,0.12); color: var(--green); }
+.sync-badge.connected::before { background: var(--green); }
+.sync-badge.syncing::before { background: var(--rust); animation: pulse 0.8s infinite; }
+.sync-badge.error { background: rgba(142,62,34,0.12); color: var(--rust-deep); }
+.sync-badge.error::before { background: var(--rust-deep); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.add-section {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+.add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.add-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  background: white;
+}
+.add-input:focus {
+  outline: none;
+  border-color: var(--rust);
+  box-shadow: 0 0 0 3px rgba(184,92,56,0.1);
+}
+.btn {
+  padding: 9px 16px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: white;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn-primary { background: var(--rust); border-color: var(--rust); color: white; }
+.btn-primary:hover { background: var(--rust-deep); border-color: var(--rust-deep); }
+.btn-ghost { border-color: var(--line); color: var(--ink-soft); }
+.btn-ghost:hover { background: var(--ink-soft); border-color: var(--ink-soft); color: var(--paper); }
+.btn-small { padding: 6px 12px; font-size: 12px; min-height: 32px; }
+.add-help { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+.add-help code {
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+/* Mode help section */
+.help-section {
+  background: linear-gradient(135deg, #fdfaf2 0%, #f9f3e3 100%);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.help-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.help-header:hover { background: rgba(184,92,56,0.04); }
+.help-section:not(.collapsed) .help-header { border-bottom: 1px solid var(--line-soft); }
+.help-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.help-title small {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--rust);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.help-toggle { font-size: 14px; color: var(--ink-soft); transition: transform 0.2s; }
+.help-section.collapsed .help-toggle { transform: rotate(-90deg); }
+.help-body { padding: 4px 16px 16px; display: block; }
+.help-section.collapsed .help-body { display: none; }
+
+.tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 12px;
+}
+.tab-btn {
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--rust); border-bottom-color: var(--rust); font-weight: 700; }
+.tab-content { display: none; padding-top: 4px; }
+.tab-content.active { display: block; }
+
+.setup-step {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--line-soft);
+}
+.setup-step:last-child { border-bottom: none; }
+.step-num {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-content {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.7;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.step-content strong { color: var(--rust-deep); }
+.step-help { font-size: 12px; color: var(--ink-soft); }
+.bookmarklet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--rust);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: grab;
+  border: 2px solid var(--rust-deep);
+  box-shadow: 0 2px 4px rgba(184,92,56,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  user-select: none;
+}
+.bookmarklet:hover { transform: translateY(-1px); }
+.demo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--rust);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  vertical-align: middle;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.chip {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.chip:hover { border-color: var(--ink-soft); }
+.chip.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.chip-status-wanted.active { background: var(--rust); border-color: var(--rust); }
+.chip-status-considering.active { background: var(--teal); border-color: var(--teal); }
+.chip-status-purchased.active { background: var(--green); border-color: var(--green); }
+.chip-status-soldout.active { background: var(--ink-soft); border-color: var(--ink-soft); }
+.search-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  background: white;
+}
+.search-input:focus { outline: none; border-color: var(--rust); }
+.sort-select {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  background: white;
+  cursor: pointer;
+}
+.divider { width: 1px; height: 20px; background: var(--line); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: all 0.2s;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+.card.flash { animation: flashIn 0.7s ease-out; }
+@keyframes flashIn {
+  0% { transform: scale(0.85); box-shadow: 0 0 0 4px var(--rust); }
+  60% { transform: scale(1.04); box-shadow: 0 0 0 2px var(--rust); }
+  100% { transform: scale(1); box-shadow: var(--shadow); }
+}
+.card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+.card-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  background: #efe9d8;
+  cursor: pointer;
+  overflow: hidden;
+}
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+.card-thumb:hover img { transform: scale(1.04); }
+.card-thumb-broken {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: 'Shippori Mincho', serif;
+  color: var(--ink-soft);
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.4;
+  background: repeating-linear-gradient(45deg, #efe9d8, #efe9d8 8px, #e8e0c9 8px, #e8e0c9 16px);
+}
+.card-status {
+  position: absolute;
+  top: 8px; left: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.card-status.s-wanted { background: var(--rust); color: white; border-color: var(--rust); }
+.card-status.s-considering { background: var(--teal); color: white; border-color: var(--teal); }
+.card-status.s-purchased { background: var(--green); color: white; border-color: var(--green); }
+.card-status.s-soldout { background: var(--ink-soft); color: white; border-color: var(--ink-soft); }
+.card-actions {
+  position: absolute;
+  top: 8px; right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.card:hover .card-actions { opacity: 1; }
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  padding: 0;
+}
+.icon-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
+.icon-btn.danger:hover { background: var(--rust-deep); border-color: var(--rust-deep); }
+.card-body { padding: 10px 12px; }
+.card-id {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 14px;
+}
+.card-title {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 3px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.card-note {
+  font-size: 11px;
+  color: var(--ink);
+  background: rgba(184, 92, 56, 0.06);
+  padding: 4px 7px;
+  border-radius: 2px;
+  border-left: 2px solid var(--rust);
+  margin-top: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.card-date { font-size: 10px; color: var(--ink-soft); margin-top: 6px; letter-spacing: 0.03em; }
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 2px dashed var(--line);
+  border-radius: 4px;
+}
+.empty-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.empty-sub { font-size: 13px; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 39, 48, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--paper);
+  border-radius: 6px;
+  max-width: 540px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  border: 1px solid var(--line);
+}
+.modal-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.modal-row { margin-bottom: 14px; }
+.modal-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+}
+.modal textarea, .modal input[type="text"], .modal input[type="password"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  background: white;
+  resize: vertical;
+}
+.modal textarea {
+  min-height: 90px;
+  font-family: monospace;
+  line-height: 1.5;
+}
+.modal textarea:focus, .modal input:focus { outline: none; border-color: var(--rust); }
+.modal-thumb-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.modal-thumb-img {
+  width: 100px; height: 100px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: #efe9d8;
+}
+.modal-thumb-meta { flex: 1; padding-top: 4px; }
+.modal-thumb-id { font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.modal-thumb-link { font-size: 12px; color: var(--rust); text-decoration: none; font-weight: 500; }
+.modal-thumb-link:hover { text-decoration: underline; }
+.status-options { display: flex; gap: 6px; flex-wrap: wrap; }
+.status-option {
+  padding: 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  background: white;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.status-option:hover { border-color: var(--ink-soft); }
+.status-option.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.status-option.selected.s-wanted { background: var(--rust); border-color: var(--rust); }
+.status-option.selected.s-considering { background: var(--teal); border-color: var(--teal); }
+.status-option.selected.s-purchased { background: var(--green); border-color: var(--green); }
+.status-option.selected.s-soldout { background: var(--ink-soft); border-color: var(--ink-soft); }
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.toast {
+  position: fixed;
+  bottom: calc(24px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 10px 20px;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 4px;
+  font-size: 13px;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--rust-deep); }
+.checkbox-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sync-info {
+  background: var(--bg);
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.sync-info strong { color: var(--ink); }
+.sync-status-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.sync-status-dot.connected { background: var(--green); }
+.sync-status-dot.error { background: var(--rust-deep); }
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  margin-top: 12px;
+}
+.qr-container canvas { border: 8px solid white; box-shadow: 0 0 0 1px var(--line); }
+.qr-label {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  text-align: center;
+  max-width: 240px;
+  line-height: 1.5;
+}
+
+.scanner-video {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+  background: #000;
+}
+
+.banner {
+  background: var(--rust);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.banner-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 24px; height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .card-status { font-size: 9px; padding: 2px 6px; }
+  .card-actions { opacity: 1; }
+  .title { font-size: 22px; }
+  .step-content { font-size: 12px; }
+  .add-row { flex-direction: column; align-items: stretch; }
+  .add-row .btn { width: 100%; justify-content: center; }
+  .add-input { width: 100%; }
+}
+
+@media (display-mode: standalone) {
+  /* When installed as PWA */
+  .install-hint { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1 class="title">
+        <span>お気に入り</span>
+        <span class="title-en">JUNK FOOD Tracker</span>
+      </h1>
+    </div>
+    <div class="header-right">
+      <span class="sync-badge" id="syncBadge" title="同期設定">未同期</span>
+      <span class="stats" id="stats"><strong>0</strong>件</span>
+    </div>
+  </header>
+
+  <div id="installBanner" class="banner install-hint" style="display:none;">
+    <span>📱 ホーム画面に追加すると、共有メニューから直接登録できます</span>
+    <button class="btn btn-small" id="installBtn">インストール</button>
+    <button class="banner-close" id="installDismiss">×</button>
+  </div>
+
+  <section class="add-section">
+    <div class="add-row">
+      <input type="text" class="add-input" id="addInput" placeholder="ID（例: J-70543）または商品ページURL">
+      <button class="btn btn-primary" id="addBtn">追加</button>
+      <button class="btn btn-ghost" id="bulkBtn">まとめて</button>
+    </div>
+    <div class="add-help">
+      <code>https://www.toylure.com/shop/{ID}.html</code> 形式のURLからIDを自動抽出
+    </div>
+  </section>
+
+  <section class="help-section collapsed" id="helpSection">
+    <div class="help-header" id="helpHeader">
+      <div class="help-title">
+        ⚡ クイック追加・同期設定
+        <small>Quick Add &amp; Sync</small>
+      </div>
+      <span class="help-toggle">▼</span>
+    </div>
+    <div class="help-body">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="mobile">📱 スマホ</button>
+        <button class="tab-btn" data-tab="pc">💻 PC</button>
+        <button class="tab-btn" data-tab="sync">☁️ 同期</button>
+        <button class="tab-btn" data-tab="data">📦 データ</button>
+      </div>
+
+      <div class="tab-content active" data-tab="mobile">
+        <div class="setup-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <span><strong>初回:</strong> ホーム画面に追加（iOS: 共有→ホーム画面に追加 / Android: メニュー→アプリをインストール）</span>
+            <button class="btn btn-small btn-primary" id="installBtn2" style="display:none;">いますぐインストール</button>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <span>ジャンクフードで商品ページを開いたら、<strong>共有ボタン → JF お気に入り</strong>をタップで自動追加</span>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <span class="step-help">※ ホーム画面に追加せずに使う場合: 共有→URLコピー後、このページに戻ると自動追加されます</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" data-tab="pc">
+        <div class="setup-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <span><strong>初回:</strong> ↓のボタンをブラウザのブックマークバーにドラッグ</span>
+            <a id="bookmarkletLink" class="bookmarklet" draggable="true">＋ JUNK FOOD 追加</a>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <button class="btn btn-primary btn-small" id="openShopBtn">ショップを開く</button>
+            <span class="step-help">→ 別タブでtoylure.comを開きます</span>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <span>ジャンクフードのページでブックマークバーの「<strong>＋ JUNK FOOD 追加</strong>」をクリック → 各商品に <span class="demo-mark">+</span> ボタン → クリックで追加</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" data-tab="sync">
+        <div class="sync-info">
+          <span class="sync-status-dot" id="syncDot"></span>
+          <strong id="syncStatusText">未設定</strong> — <span id="syncDetailText">PC・スマホで同じデータを共有するには GitHub Gist 同期を設定</span>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <a href="https://github.com/settings/tokens/new?description=JUNK+FOOD+Tracker&scopes=gist" target="_blank" rel="noopener" class="btn btn-small btn-primary">GitHub Token を発行</a>
+            <span class="step-help">scopes は <code>gist</code> のみ・期限はお好みで</span>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <button class="btn btn-small btn-primary" id="setupSyncBtn">Token を設定</button>
+            <span class="step-help">Tokenを貼り付けて連携開始</span>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <span>他の端末では <button class="btn btn-small" id="showQRBtn">📱 QR共有</button> から設定をスキャンするだけで完了</span>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <button class="btn btn-small btn-ghost" id="syncNowBtn">今すぐ同期</button>
+            <button class="btn btn-small btn-ghost" id="disconnectSyncBtn">同期解除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" data-tab="data">
+        <div class="setup-step">
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <button class="btn btn-small btn-ghost" id="exportBtn">JSONで書き出し</button>
+            <button class="btn btn-small btn-ghost" id="importBtn">JSONを読み込み</button>
+            <span class="step-help">他のデバイスや別ブラウザに移行する時に</span>
+          </div>
+        </div>
+        <div class="setup-step">
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <button class="btn btn-small btn-ghost" id="scanQRBtn">📷 QRコードで読み込み</button>
+            <span class="step-help">他端末のQR共有から設定/データを取り込み</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="filter-bar">
+    <span class="chip active" data-status="all">すべて</span>
+    <span class="chip chip-status-wanted" data-status="wanted">欲しい</span>
+    <span class="chip chip-status-considering" data-status="considering">検討中</span>
+    <span class="chip chip-status-purchased" data-status="purchased">購入済</span>
+    <span class="chip chip-status-soldout" data-status="soldout">売り切れ</span>
+    <span class="divider"></span>
+    <input type="text" class="search-input" id="searchInput" placeholder="ID・メモ検索...">
+    <select class="sort-select" id="sortSelect">
+      <option value="addedDesc">追加日（新→古）</option>
+      <option value="addedAsc">追加日（古→新）</option>
+      <option value="idAsc">ID昇順</option>
+      <option value="idDesc">ID降順</option>
+    </select>
+  </section>
+
+  <section class="grid" id="grid"></section>
+</div>
+
+<div class="modal-overlay" id="bulkModal">
+  <div class="modal">
+    <div class="modal-title">まとめて追加</div>
+    <div class="modal-row">
+      <label class="modal-label">ID または URL（1行ずつ）</label>
+      <textarea id="bulkText" placeholder="J-70543&#10;H-13220&#10;https://www.toylure.com/shop/W-1849.html"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>キャンセル</button>
+      <button class="btn btn-primary" id="bulkSubmit">追加</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">編集</div>
+    <div class="modal-thumb-row">
+      <img class="modal-thumb-img" id="editThumb" src="" alt="">
+      <div class="modal-thumb-meta">
+        <div class="modal-thumb-id" id="editId"></div>
+        <a id="editLink" class="modal-thumb-link" href="" target="_blank" rel="noopener">商品ページを開く →</a>
+      </div>
+    </div>
+    <div class="modal-row">
+      <label class="modal-label">ステータス</label>
+      <div class="status-options" id="editStatus">
+        <button class="status-option s-wanted" data-status="wanted">欲しい</button>
+        <button class="status-option s-considering" data-status="considering">検討中</button>
+        <button class="status-option s-purchased" data-status="purchased">購入済</button>
+        <button class="status-option s-soldout" data-status="soldout">売り切れ</button>
+      </div>
+    </div>
+    <div class="modal-row">
+      <label class="modal-label">タイトル（任意）</label>
+      <input type="text" id="editTitle" placeholder="例: ヘドンスプーク 緑系">
+    </div>
+    <div class="modal-row">
+      <label class="modal-label">メモ</label>
+      <textarea id="editNote" placeholder="特徴、価格、決め手など"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>キャンセル</button>
+      <button class="btn btn-primary" id="editSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">JSONを読み込み</div>
+    <div class="modal-row">
+      <label class="modal-label">JSONデータ</label>
+      <textarea id="importText" placeholder='[{"id":"J-70543","status":"wanted",...}]'></textarea>
+    </div>
+    <div class="modal-row">
+      <label class="checkbox-row">
+        <input type="checkbox" id="importMerge" checked>
+        既存データに追加（チェックを外すと置き換え）
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>キャンセル</button>
+      <button class="btn btn-primary" id="importSubmit">読み込み</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="syncModal">
+  <div class="modal">
+    <div class="modal-title">GitHub Gist 同期を設定</div>
+    <div class="modal-row">
+      <label class="modal-label">GitHub Personal Access Token</label>
+      <input type="password" id="syncToken" placeholder="ghp_... または github_pat_...">
+      <div class="step-help" style="margin-top:6px;">
+        Token は端末内のみに保存されます。クラウドには送信されません（GitHub APIを除く）
+      </div>
+    </div>
+    <div class="modal-row">
+      <label class="modal-label">Gist ID（既存のGistを使う場合のみ・空欄なら自動作成）</label>
+      <input type="text" id="syncGistId" placeholder="例: a1b2c3d4...（空欄でOK）">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>キャンセル</button>
+      <button class="btn btn-primary" id="syncSubmit">接続</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="qrShareModal">
+  <div class="modal">
+    <div class="modal-title">📱 別端末への同期設定共有</div>
+    <p style="font-size:13px; color:var(--ink-soft); margin-bottom:12px;">
+      別の端末でこのアプリを開いて、同期タブの「📷 QRコードで読み込み」からこのQRをスキャンすると、同じGistに繋がります。
+    </p>
+    <div class="qr-container">
+      <canvas id="qrCanvas"></canvas>
+      <div class="qr-label">⚠️ このQRにはGitHub Tokenが含まれます。他人に見せないでください。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-close-modal>閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="qrScanModal">
+  <div class="modal">
+    <div class="modal-title">📷 QRコードを読み込み</div>
+    <p style="font-size:13px; color:var(--ink-soft); margin-bottom:12px;">
+      別端末で表示したQR共有を、このカメラで読み取ってください。
+    </p>
+    <video id="scanVideo" class="scanner-video" autoplay playsinline muted></video>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal>キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- QR code library (very small, ~4KB) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- QR scanner -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+<script>
+'use strict';
+
+const STORAGE_KEY = 'junkfood_favorites_v1';
+const SYNC_CONFIG_KEY = 'junkfood_sync_config_v1';
+const META_KEY = 'junkfood_meta_v1';
+const SHOP_BASE = 'https://www.toylure.com/shop/';
+const IMG_BASE = 'https://www.toylure.com/img_s/';
+const ID_PATTERN = /([A-Z]+-\d+)/i;
+const GIST_FILENAME = 'junkfood-favorites.json';
+
+const STATUSES = {
+  wanted:       { label: '欲しい',   class: 's-wanted' },
+  considering:  { label: '検討中',   class: 's-considering' },
+  purchased:    { label: '購入済',   class: 's-purchased' },
+  soldout:      { label: '売り切れ', class: 's-soldout' }
+};
+
+let items = [];
+let filterStatus = 'all';
+let searchQuery = '';
+let sortBy = 'addedDesc';
+let editingId = null;
+let lastFlashId = null;
+let shopWindow = null;
+let syncConfig = null; // { token, gistId }
+let syncing = false;
+let lastSyncTime = 0;
+let installPromptEvent = null;
+let scannerStream = null;
+
+/* ============== Bookmarklet ============== */
+const BOOKMARKLET_CODE = `javascript:(function(){if(window._jfActive){document.querySelectorAll('.jf-mark,.jf-toast,.jf-pill').forEach(function(b){b.remove();});var s=document.getElementById('jf-style');if(s)s.remove();window._jfActive=false;return;}window._jfActive=true;var st=document.createElement('style');st.id='jf-style';st.textContent='.jf-mark{position:absolute!important;top:3px!important;right:3px!important;width:26px!important;height:26px!important;border-radius:50%!important;background:#b85c38!important;color:#fff!important;font:700 18px sans-serif!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;border:2px solid #fff!important;box-shadow:0 2px 6px rgba(0,0,0,.4)!important;z-index:99999!important;line-height:1!important;padding:0!important;text-decoration:none!important;}.jf-mark:hover{transform:scale(1.15)!important;}.jf-mark.done{background:#2d6a4f!important;}.jf-toast{position:fixed!important;bottom:20px!important;left:50%!important;transform:translateX(-50%)!important;padding:10px 18px!important;background:#1f2730!important;color:#fff!important;border-radius:4px!important;font:14px sans-serif!important;z-index:100000!important;box-shadow:0 4px 16px rgba(0,0,0,.3)!important;}.jf-pill{position:fixed!important;top:10px!important;left:10px!important;padding:6px 12px!important;background:#b85c38!important;color:#fff!important;font:600 12px sans-serif!important;border-radius:999px!important;z-index:99998!important;box-shadow:0 2px 6px rgba(0,0,0,.3)!important;}';document.head.appendChild(st);function toast(m){var t=document.createElement('div');t.className='jf-toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},1800);}function send(id,btn){var op=window.opener;if(op&&!op.closed){try{op.postMessage({type:'jf-add',id:id},'*');btn.textContent='✓';btn.classList.add('done');toast('追加: '+id);return;}catch(e){}}if(navigator.clipboard){navigator.clipboard.writeText(id).then(function(){btn.textContent='✓';btn.classList.add('done');toast(id+' をコピー');});}else{toast('連携不可: '+id);}}var n=0;document.querySelectorAll('a[href*="/shop/"]').forEach(function(a){var m=a.href.match(/([A-Z]+-\\d+)\\.html/i);if(!m||a.querySelector('.jf-mark'))return;var id=m[1].toUpperCase();var b=document.createElement('span');b.className='jf-mark';b.textContent='+';b.title='お気に入り追加: '+id;b.onclick=function(e){e.preventDefault();e.stopPropagation();send(id,b);return false;};if(getComputedStyle(a).position==='static')a.style.position='relative';a.appendChild(b);n++;});var um=location.pathname.match(/([A-Z]+-\\d+)\\.html/i);if(um){var fb=document.createElement('button');fb.className='jf-mark';fb.style.cssText='position:fixed!important;top:20px!important;right:20px!important;width:64px!important;height:64px!important;font-size:30px!important;border:3px solid #fff!important;';fb.textContent='+';fb.title='追加: '+um[1];fb.onclick=function(e){e.preventDefault();send(um[1].toUpperCase(),fb);};document.body.appendChild(fb);n++;}var pill=document.createElement('div');pill.className='jf-pill';pill.textContent='JF+ ON ('+n+')';document.body.appendChild(pill);toast(n+' 個のマーカー設置');})();`;
+
+/* ============== Service Worker ============== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.log('SW register failed:', e));
+  });
+}
+
+/* ============== Install prompt ============== */
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installPromptEvent = e;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  if (!isStandalone && !localStorage.getItem('install_dismissed')) {
+    document.getElementById('installBanner').style.display = 'flex';
+    document.getElementById('installBtn2').style.display = 'inline-flex';
+  }
+});
+
+function tryInstall() {
+  if (!installPromptEvent) {
+    toast('iOSの場合: 共有ボタン→「ホーム画面に追加」', 'success');
+    return;
+  }
+  installPromptEvent.prompt();
+  installPromptEvent.userChoice.then(() => {
+    installPromptEvent = null;
+    document.getElementById('installBanner').style.display = 'none';
+    document.getElementById('installBtn2').style.display = 'none';
+  });
+}
+
+document.getElementById('installBtn').addEventListener('click', tryInstall);
+document.getElementById('installBtn2').addEventListener('click', tryInstall);
+document.getElementById('installDismiss').addEventListener('click', () => {
+  document.getElementById('installBanner').style.display = 'none';
+  localStorage.setItem('install_dismissed', '1');
+});
+
+/* ============== Data layer ============== */
+function load() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    items = data ? JSON.parse(data) : [];
+  } catch (e) { items = []; }
+  try {
+    const cfg = localStorage.getItem(SYNC_CONFIG_KEY);
+    syncConfig = cfg ? JSON.parse(cfg) : null;
+  } catch (e) { syncConfig = null; }
+}
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(META_KEY, JSON.stringify({ updatedAt: new Date().toISOString() }));
+  } catch (e) { toast('保存に失敗しました', 'error'); }
+}
+function saveSyncConfig() {
+  if (syncConfig) {
+    localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(syncConfig));
+  } else {
+    localStorage.removeItem(SYNC_CONFIG_KEY);
+  }
+}
+function extractId(input) {
+  if (!input) return null;
+  const m = String(input).trim().toUpperCase().match(ID_PATTERN);
+  return m ? m[1].toUpperCase() : null;
+}
+function addItem(input) {
+  const id = extractId(input);
+  if (!id) { toast('IDを認識できませんでした', 'error'); return false; }
+  if (items.some(i => i.id === id)) { toast(id + ' は登録済み'); return false; }
+  items.push({
+    id,
+    addedAt: new Date().toISOString(),
+    status: 'wanted',
+    title: '',
+    note: ''
+  });
+  save();
+  scheduleSyncPush();
+  return true;
+}
+function deleteItem(id) {
+  if (!confirm(id + ' を削除しますか？')) return;
+  items = items.filter(i => i.id !== id);
+  save();
+  render();
+  scheduleSyncPush();
+  toast(id + ' を削除しました');
+}
+function updateItem(id, updates) {
+  const item = items.find(i => i.id === id);
+  if (item) { Object.assign(item, updates); save(); scheduleSyncPush(); }
+}
+function getFilteredItems() {
+  let result = [...items];
+  if (filterStatus !== 'all') result = result.filter(i => i.status === filterStatus);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    result = result.filter(i =>
+      i.id.toLowerCase().includes(q) ||
+      (i.note || '').toLowerCase().includes(q) ||
+      (i.title || '').toLowerCase().includes(q)
+    );
+  }
+  switch (sortBy) {
+    case 'addedDesc': result.sort((a, b) => b.addedAt.localeCompare(a.addedAt)); break;
+    case 'addedAsc':  result.sort((a, b) => a.addedAt.localeCompare(b.addedAt)); break;
+    case 'idAsc':     result.sort((a, b) => a.id.localeCompare(b.id, undefined, {numeric:true})); break;
+    case 'idDesc':    result.sort((a, b) => b.id.localeCompare(a.id, undefined, {numeric:true})); break;
+  }
+  return result;
+}
+function formatDate(iso) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / (1000 * 60 * 60 * 24);
+  if (diff < 1) return '今日';
+  if (diff < 2) return '昨日';
+  if (diff < 7) return Math.floor(diff) + '日前';
+  return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function handleImgError(img) {
+  img.parentElement.innerHTML = '<div class="card-thumb-broken">画像なし<br>(売り切れ?)</div>';
+}
+window.handleImgError = handleImgError;
+
+/* ============== Render ============== */
+function render() {
+  const grid = document.getElementById('grid');
+  const filtered = getFilteredItems();
+  document.getElementById('stats').innerHTML =
+    '<strong>' + filtered.length + '</strong>件' +
+    (filtered.length !== items.length ? ' / 全' + items.length + '件' : '');
+  document.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.status === filterStatus);
+  });
+  if (filtered.length === 0) {
+    grid.innerHTML =
+      '<div class="empty">' +
+      '<div class="empty-title">' +
+      (items.length === 0 ? 'まだ登録がありません' : '条件に合う項目がありません') +
+      '</div>' +
+      '<div class="empty-sub">' +
+      (items.length === 0 ? '上のフォームから追加するか、クイック追加モードを開いてください' : 'フィルターや検索を変えてみてください') +
+      '</div></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(item => {
+    const status = STATUSES[item.status] || STATUSES.wanted;
+    const imgUrl = IMG_BASE + item.id + '.jpg';
+    const flashClass = item.id === lastFlashId ? ' flash' : '';
+    return (
+      '<div class="card' + flashClass + '" data-id="' + escapeHtml(item.id) + '">' +
+        '<div class="card-thumb" data-action="open">' +
+          '<img src="' + imgUrl + '" alt="' + escapeHtml(item.id) + '" loading="lazy" onerror="handleImgError(this)">' +
+          '<span class="card-status ' + status.class + '">' + status.label + '</span>' +
+          '<div class="card-actions">' +
+            '<button class="icon-btn" data-action="edit" title="編集">✎</button>' +
+            '<button class="icon-btn danger" data-action="delete" title="削除">×</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-id">' + escapeHtml(item.id) + '</div>' +
+          (item.title ? '<div class="card-title">' + escapeHtml(item.title) + '</div>' : '') +
+          (item.note ? '<div class="card-note">' + escapeHtml(item.note) + '</div>' : '') +
+          '<div class="card-date">' + formatDate(item.addedAt) + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+  if (lastFlashId) setTimeout(() => { lastFlashId = null; }, 800);
+}
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+  stopScanner();
+}
+
+function openEdit(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('editId').textContent = id;
+  document.getElementById('editLink').href = SHOP_BASE + id + '.html';
+  const thumb = document.getElementById('editThumb');
+  thumb.style.display = '';
+  thumb.src = IMG_BASE + id + '.jpg';
+  thumb.onerror = function () { this.style.display = 'none'; };
+  document.getElementById('editTitle').value = item.title || '';
+  document.getElementById('editNote').value = item.note || '';
+  document.querySelectorAll('#editStatus .status-option').forEach(b => {
+    b.classList.toggle('selected', b.dataset.status === item.status);
+  });
+  openModal('editModal');
+}
+
+/* ============== Sync (GitHub Gist) ============== */
+function updateSyncBadge() {
+  const badge = document.getElementById('syncBadge');
+  const dot = document.getElementById('syncDot');
+  const statusText = document.getElementById('syncStatusText');
+  const detailText = document.getElementById('syncDetailText');
+  badge.classList.remove('connected', 'syncing', 'error');
+  if (dot) dot.classList.remove('connected', 'error');
+
+  if (syncing) {
+    badge.classList.add('syncing');
+    badge.textContent = '同期中...';
+    if (statusText) statusText.textContent = '同期中...';
+  } else if (syncConfig && syncConfig.token && syncConfig.gistId) {
+    badge.classList.add('connected');
+    badge.textContent = '同期済';
+    if (dot) dot.classList.add('connected');
+    if (statusText) statusText.textContent = '同期済';
+    if (detailText) detailText.textContent = 'Gist: ' + syncConfig.gistId.substring(0, 8) + '...';
+  } else {
+    badge.textContent = '未同期';
+    if (statusText) statusText.textContent = '未設定';
+    if (detailText) detailText.textContent = 'PC・スマホで同じデータを共有するには GitHub Gist 同期を設定';
+  }
+}
+
+async function gistApi(method, path, body) {
+  const resp = await fetch('https://api.github.com' + path, {
+    method,
+    headers: {
+      'Authorization': 'Bearer ' + syncConfig.token,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error('GitHub API ' + resp.status + ': ' + err.substring(0, 200));
+  }
+  return resp.json();
+}
+
+async function syncPush() {
+  if (!syncConfig || !syncConfig.token) return;
+  if (syncing) return;
+  syncing = true;
+  updateSyncBadge();
+  try {
+    const payload = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      items
+    };
+    const fileContent = JSON.stringify(payload, null, 2);
+
+    if (!syncConfig.gistId) {
+      // Create new gist
+      const result = await gistApi('POST', '/gists', {
+        description: 'JUNK FOOD お気に入り (toylure.com) - https://github.com',
+        public: false,
+        files: { [GIST_FILENAME]: { content: fileContent } }
+      });
+      syncConfig.gistId = result.id;
+      saveSyncConfig();
+      toast('Gist 作成: ' + result.id.substring(0, 8) + '...', 'success');
+    } else {
+      // Update existing gist
+      await gistApi('PATCH', '/gists/' + syncConfig.gistId, {
+        files: { [GIST_FILENAME]: { content: fileContent } }
+      });
+    }
+    lastSyncTime = Date.now();
+  } catch (e) {
+    console.error('Sync push failed:', e);
+    toast('同期失敗: ' + e.message, 'error');
+    document.getElementById('syncBadge').classList.add('error');
+  } finally {
+    syncing = false;
+    updateSyncBadge();
+  }
+}
+
+async function syncPull() {
+  if (!syncConfig || !syncConfig.token || !syncConfig.gistId) return;
+  if (syncing) return;
+  syncing = true;
+  updateSyncBadge();
+  try {
+    const result = await gistApi('GET', '/gists/' + syncConfig.gistId);
+    const file = result.files[GIST_FILENAME];
+    if (!file) throw new Error('Gistにファイルがありません');
+    const remote = JSON.parse(file.content);
+    if (!remote.items || !Array.isArray(remote.items)) throw new Error('データ形式が不正');
+
+    // Merge: prefer remote if newer, otherwise merge by ID
+    const localMeta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+    const localTime = localMeta.updatedAt || '1970-01-01';
+    const remoteTime = remote.updatedAt || '1970-01-01';
+
+    if (remoteTime > localTime || items.length === 0) {
+      // Remote is authoritative — but still merge IDs to not lose unsync'd local adds
+      const remoteIds = new Set(remote.items.map(i => i.id));
+      const localOnly = items.filter(i => !remoteIds.has(i.id));
+      items = [...remote.items, ...localOnly];
+      save();
+      render();
+      toast('同期完了 (' + items.length + '件)', 'success');
+    } else {
+      // Local is newer, push instead
+      await syncPush();
+      return;
+    }
+    lastSyncTime = Date.now();
+  } catch (e) {
+    console.error('Sync pull failed:', e);
+    toast('同期失敗: ' + e.message, 'error');
+    document.getElementById('syncBadge').classList.add('error');
+  } finally {
+    syncing = false;
+    updateSyncBadge();
+  }
+}
+
+let syncDebounceTimer = null;
+function scheduleSyncPush() {
+  if (!syncConfig || !syncConfig.token) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => syncPush(), 3000);
+}
+
+document.getElementById('syncBadge').addEventListener('click', () => {
+  if (syncConfig && syncConfig.token) {
+    syncPull();
+  } else {
+    document.getElementById('helpSection').classList.remove('collapsed');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === 'sync'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.dataset.tab === 'sync'));
+    document.getElementById('helpSection').scrollIntoView({behavior:'smooth'});
+  }
+});
+
+document.getElementById('setupSyncBtn').addEventListener('click', () => {
+  document.getElementById('syncToken').value = (syncConfig && syncConfig.token) || '';
+  document.getElementById('syncGistId').value = (syncConfig && syncConfig.gistId) || '';
+  openModal('syncModal');
+});
+
+document.getElementById('syncSubmit').addEventListener('click', async () => {
+  const token = document.getElementById('syncToken').value.trim();
+  const gistId = document.getElementById('syncGistId').value.trim();
+  if (!token) { toast('Tokenを入力してください', 'error'); return; }
+  syncConfig = { token, gistId: gistId || null };
+  saveSyncConfig();
+  closeModal('syncModal');
+  toast('Token設定完了。同期を開始...', 'success');
+  if (gistId) {
+    await syncPull();
+  } else {
+    await syncPush();
+  }
+  updateSyncBadge();
+});
+
+document.getElementById('syncNowBtn').addEventListener('click', () => {
+  if (!syncConfig || !syncConfig.token) { toast('まず Token を設定してください', 'error'); return; }
+  syncPull();
+});
+
+document.getElementById('disconnectSyncBtn').addEventListener('click', () => {
+  if (!confirm('同期を解除しますか？（ローカルのデータは残ります）')) return;
+  syncConfig = null;
+  saveSyncConfig();
+  updateSyncBadge();
+  toast('同期を解除しました');
+});
+
+/* ============== QR Share/Scan ============== */
+document.getElementById('showQRBtn').addEventListener('click', () => {
+  if (!syncConfig || !syncConfig.token) {
+    toast('まず Token を設定してください', 'error');
+    return;
+  }
+  const data = JSON.stringify({
+    t: 'jf-sync',
+    token: syncConfig.token,
+    gistId: syncConfig.gistId
+  });
+  openModal('qrShareModal');
+  setTimeout(() => {
+    QRCode.toCanvas(document.getElementById('qrCanvas'), data, {
+      width: 280,
+      margin: 1,
+      color: { dark: '#1f2730', light: '#fdfaf2' },
+      errorCorrectionLevel: 'M'
+    }, err => { if (err) toast('QR生成失敗', 'error'); });
+  }, 100);
+});
+
+document.getElementById('scanQRBtn').addEventListener('click', async () => {
+  openModal('qrScanModal');
+  await startScanner();
+});
+
+async function startScanner() {
+  const video = document.getElementById('scanVideo');
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    video.srcObject = scannerStream;
+    requestAnimationFrame(scanFrame);
+  } catch (e) {
+    toast('カメラを使用できません: ' + e.message, 'error');
+    closeModal('qrScanModal');
+  }
+}
+
+function stopScanner() {
+  if (scannerStream) {
+    scannerStream.getTracks().forEach(t => t.stop());
+    scannerStream = null;
+  }
+}
+
+function scanFrame() {
+  const video = document.getElementById('scanVideo');
+  if (!scannerStream || video.readyState !== video.HAVE_ENOUGH_DATA) {
+    if (scannerStream) requestAnimationFrame(scanFrame);
+    return;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+  if (code) {
+    handleScannedQR(code.data);
+  } else {
+    requestAnimationFrame(scanFrame);
+  }
+}
+
+function handleScannedQR(text) {
+  try {
+    const data = JSON.parse(text);
+    if (data.t === 'jf-sync' && data.token) {
+      syncConfig = { token: data.token, gistId: data.gistId || null };
+      saveSyncConfig();
+      stopScanner();
+      closeAllModals();
+      toast('同期設定を取り込みました。データ取得中...', 'success');
+      syncPull();
+    } else {
+      toast('対応していないQRコードです', 'error');
+    }
+  } catch (e) {
+    toast('QR解析失敗: ' + e.message, 'error');
+  }
+}
+
+/* ============== Share Target receiver ============== */
+function handleShareTarget() {
+  const params = new URLSearchParams(location.search);
+  const candidates = [params.get('url'), params.get('text'), params.get('title')].filter(Boolean);
+  for (const c of candidates) {
+    const id = extractId(c);
+    if (id) {
+      if (addItem(id)) {
+        lastFlashId = id;
+        if (filterStatus !== 'all' && filterStatus !== 'wanted') filterStatus = 'all';
+        toast('🎣 共有から追加: ' + id, 'success');
+      } else {
+        toast(id + ' は既に登録済み');
+      }
+      // Clean URL
+      history.replaceState(null, '', location.pathname);
+      return;
+    }
+  }
+  // No ID found in share params — also check clipboard if available
+  if (params.has('url') || params.has('text') || params.has('title')) {
+    toast('IDを認識できませんでした', 'error');
+    history.replaceState(null, '', location.pathname);
+  }
+}
+
+/* On focus, try to read clipboard for an ID (mobile copy→back-to-app flow) */
+let lastClipboardCheck = 0;
+async function tryClipboardAdd() {
+  // Throttle to avoid spam
+  if (Date.now() - lastClipboardCheck < 1000) return;
+  lastClipboardCheck = Date.now();
+  if (!navigator.clipboard || !navigator.clipboard.readText) return;
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text) return;
+    const id = extractId(text);
+    if (!id) return;
+    if (items.some(i => i.id === id)) return; // already added, no spam
+    // Confirm before adding
+    if (confirm('クリップボードに ' + id + ' があります。お気に入りに追加しますか？')) {
+      if (addItem(id)) {
+        lastFlashId = id;
+        if (filterStatus !== 'all' && filterStatus !== 'wanted') filterStatus = 'all';
+        render();
+        toast('🎣 追加: ' + id, 'success');
+      }
+    }
+  } catch (e) {
+    // permission denied or no clipboard — silent fail
+  }
+}
+
+/* ============== PC bookmarklet via popup ============== */
+window.addEventListener('message', function(e) {
+  if (!e.origin || !e.origin.includes('toylure.com')) return;
+  const d = e.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.type === 'jf-add' && d.id) {
+    const id = String(d.id).toUpperCase();
+    if (!/^[A-Z]+-\d+$/.test(id)) return;
+    if (addItem(id)) {
+      lastFlashId = id;
+      if (filterStatus !== 'all' && filterStatus !== 'wanted') filterStatus = 'all';
+      if (searchQuery && !id.toLowerCase().includes(searchQuery.toLowerCase())) {
+        document.getElementById('searchInput').value = '';
+        searchQuery = '';
+      }
+      render();
+      toast('🎣 追加: ' + id, 'success');
+    } else {
+      toast(id + ' は登録済み');
+    }
+  }
+});
+
+document.getElementById('openShopBtn').addEventListener('click', () => {
+  if (shopWindow && !shopWindow.closed) { shopWindow.focus(); return; }
+  shopWindow = window.open(SHOP_BASE, 'jfshop');
+  if (shopWindow) toast('ショップを別タブで開きました', 'success');
+  else toast('タブを開けませんでした', 'error');
+});
+
+/* ============== Tab switching ============== */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.dataset.tab === tab));
+  });
+});
+
+document.getElementById('helpHeader').addEventListener('click', () => {
+  document.getElementById('helpSection').classList.toggle('collapsed');
+});
+
+/* ============== UI handlers ============== */
+document.getElementById('bookmarkletLink').href = BOOKMARKLET_CODE;
+document.getElementById('bookmarkletLink').addEventListener('click', e => {
+  e.preventDefault();
+  toast('このボタンはブックマークバーに「ドラッグ」してください', 'error');
+});
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const input = document.getElementById('addInput');
+  if (addItem(input.value)) {
+    input.value = '';
+    render();
+    toast('追加しました', 'success');
+  }
+});
+document.getElementById('addInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('addBtn').click(); }
+});
+document.getElementById('bulkBtn').addEventListener('click', () => {
+  document.getElementById('bulkText').value = '';
+  openModal('bulkModal');
+});
+document.getElementById('bulkSubmit').addEventListener('click', () => {
+  const lines = document.getElementById('bulkText').value.split(/\n+/);
+  let added = 0, skipped = 0;
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    if (addItem(line)) added++; else skipped++;
+  }
+  closeModal('bulkModal');
+  render();
+  toast(added + '件追加' + (skipped > 0 ? '（' + skipped + '件スキップ）' : ''), 'success');
+});
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (items.length === 0) { toast('データがありません'); return; }
+  const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'junkfood-favorites-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('書き出しました', 'success');
+});
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importText').value = '';
+  openModal('importModal');
+});
+document.getElementById('importSubmit').addEventListener('click', () => {
+  try {
+    const data = JSON.parse(document.getElementById('importText').value);
+    if (!Array.isArray(data)) throw new Error('配列形式である必要があります');
+    const merge = document.getElementById('importMerge').checked;
+    const valid = data
+      .filter(d => d && d.id && /^[A-Z]+-\d+$/.test(d.id))
+      .map(d => ({
+        id: d.id,
+        addedAt: d.addedAt || new Date().toISOString(),
+        status: d.status && STATUSES[d.status] ? d.status : 'wanted',
+        title: d.title || '',
+        note: d.note || ''
+      }));
+    if (merge) {
+      const existing = new Set(items.map(i => i.id));
+      const toAdd = valid.filter(d => !existing.has(d.id));
+      items.push(...toAdd);
+      toast(toAdd.length + '件追加（重複' + (valid.length - toAdd.length) + '件）', 'success');
+    } else {
+      items = valid;
+      toast(valid.length + '件で置き換えました', 'success');
+    }
+    save();
+    closeModal('importModal');
+    render();
+    scheduleSyncPush();
+  } catch (e) {
+    toast('読み込み失敗: ' + e.message, 'error');
+  }
+});
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => { filterStatus = c.dataset.status; render(); });
+});
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value; render();
+});
+document.getElementById('sortSelect').addEventListener('change', e => {
+  sortBy = e.target.value; render();
+});
+document.getElementById('grid').addEventListener('click', e => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  const id = card.dataset.id;
+  const actionEl = e.target.closest('[data-action]');
+  const action = actionEl ? actionEl.dataset.action : null;
+  if (action === 'edit') { e.stopPropagation(); openEdit(id); }
+  else if (action === 'delete') { e.stopPropagation(); deleteItem(id); }
+  else if (action === 'open' || e.target.closest('.card-thumb')) {
+    window.open(SHOP_BASE + id + '.html', '_blank', 'noopener');
+  }
+});
+document.querySelectorAll('#editStatus .status-option').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#editStatus .status-option').forEach(x => x.classList.remove('selected'));
+    b.classList.add('selected');
+  });
+});
+document.getElementById('editSave').addEventListener('click', () => {
+  if (!editingId) return;
+  const sel = document.querySelector('#editStatus .status-option.selected');
+  const status = sel ? sel.dataset.status : 'wanted';
+  const title = document.getElementById('editTitle').value.trim();
+  const note = document.getElementById('editNote').value.trim();
+  updateItem(editingId, { status, title, note });
+  closeModal('editModal');
+  render();
+  toast('保存しました', 'success');
+});
+document.querySelectorAll('[data-close-modal]').forEach(b => {
+  b.addEventListener('click', closeAllModals);
+});
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeAllModals(); });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+
+/* On window focus, auto-pull from sync (cross-device freshness) */
+window.addEventListener('focus', () => {
+  // Check sync if it's been > 30s
+  if (syncConfig && syncConfig.token && syncConfig.gistId && Date.now() - lastSyncTime > 30000) {
+    syncPull();
+  }
+  // Check clipboard for shared URL
+  tryClipboardAdd();
+});
+
+/* ============== Init ============== */
+load();
+handleShareTarget();
+render();
+updateSyncBadge();
+
+// Initial sync pull if configured
+if (syncConfig && syncConfig.token && syncConfig.gistId) {
+  syncPull();
+}
+</script>
+</body>
+</html>
