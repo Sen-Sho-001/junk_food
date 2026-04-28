@@ -1,5 +1,6 @@
 # JUNK FOOD お気に入り (PWA版)
 
+
 ジャンクフード（toylure.com）の中古ルアー用お気に入り管理ツール。
 PC・スマホ両対応の Progressive Web App として動作します。
 
