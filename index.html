@@ -633,8 +633,16 @@ header {
   border: 1px solid var(--line);
   border-radius: 4px;
   margin-top: 12px;
+  min-height: 320px;
 }
-.qr-container canvas { border: 8px solid white; box-shadow: 0 0 0 1px var(--line); }
+.qr-container canvas {
+  border: 8px solid white;
+  box-shadow: 0 0 0 1px var(--line);
+  width: 280px;
+  height: 280px;
+  display: block;
+  background: #fdfaf2;
+}
 .qr-label {
   font-size: 11px;
   color: var(--ink-soft);
@@ -980,10 +988,11 @@ header {
 
 <div class="toast" id="toast"></div>
 
-<!-- QR code library (very small, ~4KB) -->
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<!-- QR code library (primary + fallback) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" onerror="window._qrPrimaryFailed=true;"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js" onerror="window._qrFallbackFailed=true;"></script>
 <!-- QR scanner -->
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" onerror="window._jsqrFailed=true;"></script>
 
 <script>
 'use strict';
@@ -1412,20 +1421,78 @@ document.getElementById('showQRBtn').addEventListener('click', () => {
     toast('まず Token を設定してください', 'error');
     return;
   }
+
+  // Check if QRCode library loaded
+  if (typeof QRCode === 'undefined') {
+    toast('QRライブラリの読み込みに失敗。ネット接続を確認してリロードしてください', 'error');
+    console.error('QRCode library not loaded');
+    return;
+  }
+
   const data = JSON.stringify({
     t: 'jf-sync',
     token: syncConfig.token,
     gistId: syncConfig.gistId
   });
+
   openModal('qrShareModal');
-  setTimeout(() => {
-    QRCode.toCanvas(document.getElementById('qrCanvas'), data, {
+
+  // Wait for modal to be fully visible before drawing
+  const tryRender = (attempt) => {
+    const canvas = document.getElementById('qrCanvas');
+    if (!canvas) {
+      if (attempt < 10) return setTimeout(() => tryRender(attempt + 1), 100);
+      toast('Canvas要素が見つかりません', 'error');
+      return;
+    }
+
+    // Method 1: toCanvas (preferred)
+    if (QRCode.toCanvas) {
+      QRCode.toCanvas(canvas, data, {
+        width: 280,
+        margin: 2,
+        color: { dark: '#1f2730', light: '#fdfaf2' },
+        errorCorrectionLevel: 'M'
+      }, err => {
+        if (err) {
+          console.error('toCanvas failed:', err);
+          tryDataUrlMethod(canvas, data);
+        } else {
+          console.log('QR rendered via toCanvas');
+        }
+      });
+    } else if (QRCode.toDataURL) {
+      tryDataUrlMethod(canvas, data);
+    } else {
+      toast('QRライブラリが正しく読み込まれていません', 'error');
+      console.error('QRCode library missing toCanvas and toDataURL methods', QRCode);
+    }
+  };
+
+  // Fallback: toDataURL → render to canvas via Image
+  function tryDataUrlMethod(canvas, data) {
+    QRCode.toDataURL(data, {
       width: 280,
-      margin: 1,
-      color: { dark: '#1f2730', light: '#fdfaf2' },
-      errorCorrectionLevel: 'M'
-    }, err => { if (err) toast('QR生成失敗', 'error'); });
-  }, 100);
+      margin: 2,
+      color: { dark: '#1f2730', light: '#fdfaf2' }
+    }).then(url => {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = 280;
+        canvas.height = 280;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 280, 280);
+        console.log('QR rendered via toDataURL fallback');
+      };
+      img.onerror = () => toast('QR画像の生成に失敗', 'error');
+      img.src = url;
+    }).catch(e => {
+      console.error('toDataURL failed:', e);
+      toast('QR生成失敗: ' + e.message, 'error');
+    });
+  }
+
+  setTimeout(() => tryRender(0), 200);
 });
 
 document.getElementById('scanQRBtn').addEventListener('click', async () => {
