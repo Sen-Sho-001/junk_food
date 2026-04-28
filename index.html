@@ -406,22 +406,27 @@ header {
   top: 8px; right: 8px;
   display: flex;
   gap: 4px;
-  opacity: 0;
+  opacity: 0.85;
   transition: opacity 0.15s;
 }
 .card:hover .card-actions { opacity: 1; }
+@media (hover: none) {
+  .card-actions { opacity: 1; }
+}
 .icon-btn {
   width: 32px; height: 32px;
   border-radius: 4px;
   border: 1px solid var(--line);
-  background: white;
+  background: rgba(255,255,255,0.95);
   color: var(--ink);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   padding: 0;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 .icon-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
 .icon-btn.danger:hover { background: var(--rust-deep); border-color: var(--rust-deep); }
@@ -1092,8 +1097,30 @@ function saveSyncConfig() {
 }
 function extractId(input) {
   if (!input) return null;
-  const m = String(input).trim().toUpperCase().match(ID_PATTERN);
-  return m ? m[1].toUpperCase() : null;
+  const text = String(input).trim();
+
+  // Case 1: looks like a toylure.com URL → extract from path
+  if (/toylure\.com/i.test(text)) {
+    const m = text.toUpperCase().match(/\/([A-Z]+-\d+)\.HTML/);
+    if (m) return m[1];
+    return null;
+  }
+
+  // Case 2: pure ID input (with optional whitespace) e.g. "J-70543"
+  // Must be the entire (trimmed) input, not a substring of something larger
+  const pure = text.toUpperCase();
+  if (/^[A-Z]{1,3}-\d{3,6}$/.test(pure)) return pure;
+
+  // Case 3: stricter substring match — must be word-bounded and have valid length
+  // (not preceded by another letter or hyphen — to avoid "Sho-001" in "Sen-Sho-001")
+  const m = pure.match(/(?:^|[^A-Z\-])([A-Z]{1,3}-\d{3,6})(?:$|[^\d])/);
+  if (m) return m[1];
+
+  return null;
+}
+
+function isToylureSource(text) {
+  return /toylure\.com/i.test(String(text || ''));
 }
 function addItem(input) {
   const id = extractId(input);
@@ -1422,13 +1449,6 @@ document.getElementById('showQRBtn').addEventListener('click', () => {
     return;
   }
 
-  // Check if QRCode library loaded
-  if (typeof QRCode === 'undefined') {
-    toast('QRライブラリの読み込みに失敗。ネット接続を確認してリロードしてください', 'error');
-    console.error('QRCode library not loaded');
-    return;
-  }
-
   const data = JSON.stringify({
     t: 'jf-sync',
     token: syncConfig.token,
@@ -1437,40 +1457,52 @@ document.getElementById('showQRBtn').addEventListener('click', () => {
 
   openModal('qrShareModal');
 
-  // Wait for modal to be fully visible before drawing
   const tryRender = (attempt) => {
     const canvas = document.getElementById('qrCanvas');
     if (!canvas) {
-      if (attempt < 10) return setTimeout(() => tryRender(attempt + 1), 100);
+      if (attempt < 10) return setTimeout(() => tryRender(attempt + 1), 150);
       toast('Canvas要素が見つかりません', 'error');
       return;
     }
 
-    // Method 1: toCanvas (preferred)
-    if (QRCode.toCanvas) {
-      QRCode.toCanvas(canvas, data, {
-        width: 280,
-        margin: 2,
-        color: { dark: '#1f2730', light: '#fdfaf2' },
-        errorCorrectionLevel: 'M'
-      }, err => {
-        if (err) {
-          console.error('toCanvas failed:', err);
-          tryDataUrlMethod(canvas, data);
-        } else {
-          console.log('QR rendered via toCanvas');
-        }
-      });
-    } else if (QRCode.toDataURL) {
-      tryDataUrlMethod(canvas, data);
-    } else {
-      toast('QRライブラリが正しく読み込まれていません', 'error');
-      console.error('QRCode library missing toCanvas and toDataURL methods', QRCode);
+    if (typeof QRCode === 'undefined') {
+      if (attempt < 20) return setTimeout(() => tryRender(attempt + 1), 200);
+      toast('QRライブラリの読み込みに失敗。インターネット接続を確認してリロードしてください', 'error');
+      console.error('QRCode library not loaded after multiple attempts');
+      return;
     }
+
+    // Method 1: toCanvas (standard)
+    if (typeof QRCode.toCanvas === 'function') {
+      try {
+        QRCode.toCanvas(canvas, data, {
+          width: 280,
+          margin: 2,
+          color: { dark: '#1f2730', light: '#fdfaf2' },
+          errorCorrectionLevel: 'M'
+        }, err => {
+          if (err) {
+            console.error('toCanvas failed:', err);
+            tryDataUrlMethod(canvas, data);
+          } else {
+            console.log('QR rendered via toCanvas');
+          }
+        });
+        return;
+      } catch (e) {
+        console.error('toCanvas threw:', e);
+      }
+    }
+    // Method 2: toDataURL fallback
+    tryDataUrlMethod(canvas, data);
   };
 
-  // Fallback: toDataURL → render to canvas via Image
   function tryDataUrlMethod(canvas, data) {
+    if (typeof QRCode.toDataURL !== 'function') {
+      toast('QRライブラリが正しく動作しません', 'error');
+      console.error('QRCode object:', QRCode);
+      return;
+    }
     QRCode.toDataURL(data, {
       width: 280,
       margin: 2,
@@ -1481,8 +1513,10 @@ document.getElementById('showQRBtn').addEventListener('click', () => {
         canvas.width = 280;
         canvas.height = 280;
         const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fdfaf2';
+        ctx.fillRect(0, 0, 280, 280);
         ctx.drawImage(img, 0, 0, 280, 280);
-        console.log('QR rendered via toDataURL fallback');
+        console.log('QR rendered via toDataURL');
       };
       img.onerror = () => toast('QR画像の生成に失敗', 'error');
       img.src = url;
@@ -1492,7 +1526,7 @@ document.getElementById('showQRBtn').addEventListener('click', () => {
     });
   }
 
-  setTimeout(() => tryRender(0), 200);
+  setTimeout(() => tryRender(0), 250);
 });
 
 document.getElementById('scanQRBtn').addEventListener('click', async () => {
@@ -1563,9 +1597,14 @@ function handleScannedQR(text) {
 function handleShareTarget() {
   const params = new URLSearchParams(location.search);
   const candidates = [params.get('url'), params.get('text'), params.get('title')].filter(Boolean);
+  let foundFromToylure = false;
+
   for (const c of candidates) {
+    // Only accept if the source is clearly toylure.com
+    if (!isToylureSource(c)) continue;
     const id = extractId(c);
     if (id) {
+      foundFromToylure = true;
       if (addItem(id)) {
         lastFlashId = id;
         if (filterStatus !== 'all' && filterStatus !== 'wanted') filterStatus = 'all';
@@ -1573,32 +1612,34 @@ function handleShareTarget() {
       } else {
         toast(id + ' は既に登録済み');
       }
-      // Clean URL
       history.replaceState(null, '', location.pathname);
       return;
     }
   }
-  // No ID found in share params — also check clipboard if available
-  if (params.has('url') || params.has('text') || params.has('title')) {
-    toast('IDを認識できませんでした', 'error');
+
+  // Share params present but no valid toylure ID — clean up but don't error
+  if ((params.has('url') || params.has('text') || params.has('title')) && !foundFromToylure) {
+    if (candidates.some(c => c)) {
+      toast('toylure.com の商品ページのみ対応', 'error');
+    }
     history.replaceState(null, '', location.pathname);
   }
 }
 
-/* On focus, try to read clipboard for an ID (mobile copy→back-to-app flow) */
+/* On focus, try to read clipboard for an ID — only if it's a toylure.com URL */
 let lastClipboardCheck = 0;
 async function tryClipboardAdd() {
-  // Throttle to avoid spam
   if (Date.now() - lastClipboardCheck < 1000) return;
   lastClipboardCheck = Date.now();
   if (!navigator.clipboard || !navigator.clipboard.readText) return;
   try {
     const text = await navigator.clipboard.readText();
     if (!text) return;
+    // STRICT: only consider clipboard contents that are clearly a toylure.com URL
+    if (!isToylureSource(text)) return;
     const id = extractId(text);
     if (!id) return;
-    if (items.some(i => i.id === id)) return; // already added, no spam
-    // Confirm before adding
+    if (items.some(i => i.id === id)) return;
     if (confirm('クリップボードに ' + id + ' があります。お気に入りに追加しますか？')) {
       if (addItem(id)) {
         lastFlashId = id;
