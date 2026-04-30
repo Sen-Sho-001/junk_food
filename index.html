@@ -371,7 +371,24 @@ header {
   cursor: pointer;
   overflow: hidden;
 }
-.card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+.card-thumb-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.85);
+  transform: scale(1.15);
+  z-index: 0;
+}
+.card-thumb img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.3s;
+  z-index: 1;
+}
 .card-thumb:hover img { transform: scale(1.04); }
 .card-thumb-broken {
   display: flex;
@@ -462,6 +479,29 @@ header {
   -webkit-box-orient: vertical;
 }
 .card-date { font-size: 10px; color: var(--ink-soft); margin-top: 6px; letter-spacing: 0.03em; }
+.card-price {
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--rust-deep);
+  margin-top: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.card-price .yen { font-size: 11px; opacity: 0.7; }
+.card-price.soldout {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.card-price-discount {
+  font-size: 10px;
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  margin-left: 4px;
+  font-weight: 400;
+}
 
 .empty {
   grid-column: 1 / -1;
@@ -1034,7 +1074,7 @@ let installPromptEvent = null;
 let scannerStream = null;
 
 /* ============== Bookmarklet ============== */
-const BOOKMARKLET_CODE = `javascript:(function(){var APP_URL='https://sen-sho-001.github.io/junk_food/';if(window._jfActive){document.querySelectorAll('.jf-mark,.jf-toast,.jf-pill').forEach(function(b){b.remove();});var s=document.getElementById('jf-style');if(s)s.remove();window._jfActive=false;return;}window._jfActive=true;var st=document.createElement('style');st.id='jf-style';st.textContent='.jf-mark{position:absolute!important;top:3px!important;right:3px!important;width:26px!important;height:26px!important;border-radius:50%!important;background:#b85c38!important;color:#fff!important;font:700 18px sans-serif!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;border:2px solid #fff!important;box-shadow:0 2px 6px rgba(0,0,0,.4)!important;z-index:99999!important;line-height:1!important;padding:0!important;text-decoration:none!important;}.jf-mark:hover{transform:scale(1.15)!important;}.jf-mark.done{background:#2d6a4f!important;}.jf-toast{position:fixed!important;bottom:20px!important;left:50%!important;transform:translateX(-50%)!important;padding:10px 18px!important;background:#1f2730!important;color:#fff!important;border-radius:4px!important;font:14px sans-serif!important;z-index:100000!important;box-shadow:0 4px 16px rgba(0,0,0,.3)!important;}.jf-pill{position:fixed!important;top:10px!important;left:10px!important;padding:6px 12px!important;background:#b85c38!important;color:#fff!important;font:600 12px sans-serif!important;border-radius:999px!important;z-index:99998!important;box-shadow:0 2px 6px rgba(0,0,0,.3)!important;}';document.head.appendChild(st);function toast(m){var t=document.createElement('div');t.className='jf-toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},2000);}function send(id,btn){btn.textContent='✓';btn.classList.add('done');var url=APP_URL+'?url='+encodeURIComponent('https://www.toylure.com/shop/'+id+'.html');var op=window.opener;if(op&&!op.closed){try{op.postMessage({type:'jf-add',id:id},'*');toast('追加: '+id+' (opener)');return;}catch(e){}}var w=window.open(url+'&autoclose=1','jf-relay-'+Date.now(),'width=300,height=200,left=10,top=10,menubar=no,toolbar=no');if(w){toast('追加: '+id);setTimeout(function(){try{w.close();}catch(e){}},3000);}else{if(navigator.clipboard){navigator.clipboard.writeText(id).then(function(){toast(id+' をコピー（ポップアップ拒否）');});}else{toast('追加失敗: '+id);}}}var RX=new RegExp('([A-Z]+-[0-9]+)\\.html','i');var n=0;document.querySelectorAll('a[href*="/shop/"]').forEach(function(a){var m=a.href.match(RX);if(!m||a.querySelector('.jf-mark'))return;var id=m[1].toUpperCase();var b=document.createElement('span');b.className='jf-mark';b.textContent='+';b.title='お気に入り追加: '+id;b.onclick=function(e){e.preventDefault();e.stopPropagation();send(id,b);return false;};if(getComputedStyle(a).position==='static')a.style.position='relative';a.appendChild(b);n++;});var um=location.pathname.match(RX);if(um){var fb=document.createElement('button');fb.className='jf-mark';fb.style.cssText='position:fixed!important;top:20px!important;right:20px!important;width:64px!important;height:64px!important;font-size:30px!important;border:3px solid #fff!important;';fb.textContent='+';fb.title='追加: '+um[1];fb.onclick=function(e){e.preventDefault();send(um[1].toUpperCase(),fb);};document.body.appendChild(fb);n++;}var pill=document.createElement('div');pill.className='jf-pill';pill.textContent='JF+ ON ('+n+')';document.body.appendChild(pill);toast(n+' 個のマーカー設置');})();`;
+const BOOKMARKLET_CODE = `javascript:(function(){var APP_URL='https://sen-sho-001.github.io/junk_food/';if(window._jfActive){document.querySelectorAll('.jf-mark,.jf-toast,.jf-pill').forEach(function(b){b.remove();});var s=document.getElementById('jf-style');if(s)s.remove();window._jfActive=false;return;}window._jfActive=true;var st=document.createElement('style');st.id='jf-style';st.textContent='.jf-mark{position:absolute!important;top:3px!important;right:3px!important;width:26px!important;height:26px!important;border-radius:50%!important;background:#b85c38!important;color:#fff!important;font:700 18px sans-serif!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;border:2px solid #fff!important;box-shadow:0 2px 6px rgba(0,0,0,.4)!important;z-index:99999!important;line-height:1!important;padding:0!important;text-decoration:none!important;}.jf-mark:hover{transform:scale(1.15)!important;}.jf-mark.done{background:#2d6a4f!important;}.jf-toast{position:fixed!important;bottom:20px!important;left:50%!important;transform:translateX(-50%)!important;padding:10px 18px!important;background:#1f2730!important;color:#fff!important;border-radius:4px!important;font:14px sans-serif!important;z-index:100000!important;box-shadow:0 4px 16px rgba(0,0,0,.3)!important;}.jf-pill{position:fixed!important;top:10px!important;left:10px!important;padding:6px 12px!important;background:#b85c38!important;color:#fff!important;font:600 12px sans-serif!important;border-radius:999px!important;z-index:99998!important;box-shadow:0 2px 6px rgba(0,0,0,.3)!important;}';document.head.appendChild(st);function toast(m){var t=document.createElement('div');t.className='jf-toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},2000);}function fetchDetail(id){return new Promise(function(res){var x=new XMLHttpRequest();x.open('GET','/shop/'+id+'.html',true);x.responseType='text';x.onload=function(){if(x.status>=200&&x.status<300){res(parseDetail(x.responseText));}else res(null);};x.onerror=function(){res(null);};x.send();});}function parseDetail(html){var data={};var rxOrig=new RegExp('本体価格[^0-9]*([0-9,]+)','i');var rxTax=new RegExp('税込価格[^0-9]*([0-9,]+)','i');var rxTitle=new RegExp('<title>([^<]+)</title>','i');var rxSold=new RegExp('SOLD\\s*OUT|売り切れ','i');var m;m=html.match(rxOrig);if(m)data.priceOrig=parseInt(m[1].replace(/,/g,''),10);m=html.match(rxTax);if(m)data.priceTax=parseInt(m[1].replace(/,/g,''),10);m=html.match(rxTitle);if(m){var t=m[1].replace(/JUNK\s+FOOD\s+item:\s*[A-Z]+-[0-9]+\s*/i,'').trim();if(t)data.title=t;}if(rxSold.test(html))data.soldout=true;return data;}function send(id,btn,detail){btn.textContent='✓';btn.classList.add('done');var payload={type:'jf-add',id:id};if(detail){if(detail.priceOrig)payload.priceOrig=detail.priceOrig;if(detail.priceTax)payload.priceTax=detail.priceTax;if(detail.title)payload.title=detail.title;if(detail.soldout)payload.soldout=true;}var op=window.opener;if(op&&!op.closed){try{op.postMessage(payload,'*');toast('追加: '+id+(detail&&detail.priceTax?' ¥'+detail.priceTax:''));return;}catch(e){}}var qs='?url='+encodeURIComponent('https://www.toylure.com/shop/'+id+'.html');if(detail){if(detail.priceOrig)qs+='&po='+detail.priceOrig;if(detail.priceTax)qs+='&pt='+detail.priceTax;if(detail.title)qs+='&t='+encodeURIComponent(detail.title);if(detail.soldout)qs+='&so=1';}var w=window.open(APP_URL+qs+'&autoclose=1','jf-relay-'+Date.now(),'width=300,height=200,left=10,top=10,menubar=no,toolbar=no');if(w){toast('追加: '+id+(detail&&detail.priceTax?' ¥'+detail.priceTax:''));setTimeout(function(){try{w.close();}catch(e){}},3000);}else{if(navigator.clipboard){navigator.clipboard.writeText(id).then(function(){toast(id+' をコピー（ポップアップ拒否）');});}else{toast('追加失敗: '+id);}}}var RX=new RegExp('([A-Z]+-[0-9]+)\\.html','i');var n=0;document.querySelectorAll('a[href*="/shop/"]').forEach(function(a){var m=a.href.match(RX);if(!m||a.querySelector('.jf-mark'))return;var id=m[1].toUpperCase();var b=document.createElement('span');b.className='jf-mark';b.textContent='+';b.title='お気に入り追加: '+id;b.onclick=function(e){e.preventDefault();e.stopPropagation();b.textContent='…';fetchDetail(id).then(function(d){send(id,b,d);});return false;};if(getComputedStyle(a).position==='static')a.style.position='relative';a.appendChild(b);n++;});var um=location.pathname.match(RX);if(um){var fb=document.createElement('button');fb.className='jf-mark';fb.style.cssText='position:fixed!important;top:20px!important;right:20px!important;width:64px!important;height:64px!important;font-size:30px!important;border:3px solid #fff!important;';fb.textContent='+';fb.title='追加: '+um[1];fb.onclick=function(e){e.preventDefault();fb.textContent='…';var detail=parseDetail(document.documentElement.outerHTML);send(um[1].toUpperCase(),fb,detail);};document.body.appendChild(fb);n++;}var pill=document.createElement('div');pill.className='jf-pill';pill.textContent='JF+ ON ('+n+')';document.body.appendChild(pill);toast(n+' 個のマーカー設置');})();`;
 
 /* ============== Service Worker ============== */
 if ('serviceWorker' in navigator) {
@@ -1213,9 +1253,21 @@ function render() {
     const status = STATUSES[item.status] || STATUSES.wanted;
     const imgUrl = IMG_BASE + item.id + '.jpg';
     const flashClass = item.id === lastFlashId ? ' flash' : '';
+    const isSoldout = item.status === 'soldout';
+
+    let priceHtml = '';
+    if (item.priceTax) {
+      const priceClass = isSoldout ? 'card-price soldout' : 'card-price';
+      const discount = item.priceOrig && item.priceOrig !== item.priceTax
+        ? '<span class="card-price-discount">¥' + item.priceOrig.toLocaleString() + '</span>'
+        : '';
+      priceHtml = '<div class="' + priceClass + '">¥' + item.priceTax.toLocaleString() + discount + '</div>';
+    }
+
     return (
       '<div class="card' + flashClass + '" data-id="' + escapeHtml(item.id) + '">' +
         '<div class="card-thumb" data-action="open">' +
+          '<div class="card-thumb-bg" style="background-image:url(' + imgUrl + ')"></div>' +
           '<img src="' + imgUrl + '" alt="' + escapeHtml(item.id) + '" loading="lazy" onerror="handleImgError(this)">' +
           '<span class="card-status ' + status.class + '">' + status.label + '</span>' +
           '<div class="card-actions">' +
@@ -1226,6 +1278,7 @@ function render() {
         '<div class="card-body">' +
           '<div class="card-id">' + escapeHtml(item.id) + '</div>' +
           (item.title ? '<div class="card-title">' + escapeHtml(item.title) + '</div>' : '') +
+          priceHtml +
           (item.note ? '<div class="card-note">' + escapeHtml(item.note) + '</div>' : '') +
           '<div class="card-date">' + formatDate(item.addedAt) + '</div>' +
         '</div>' +
@@ -1576,29 +1629,42 @@ function handleShareTarget() {
   const isInIframe = window.self !== window.top;
   const isAutoclose = params.get('autoclose') === '1';
 
+  // Extract optional extras (price, title, soldout) from query params
+  const extra = {};
+  const po = parseInt(params.get('po') || '', 10);
+  const pt = parseInt(params.get('pt') || '', 10);
+  if (!isNaN(po)) extra.priceOrig = po;
+  if (!isNaN(pt)) extra.priceTax = pt;
+  const t = params.get('t');
+  if (t) extra.title = t;
+  if (params.get('so') === '1') extra.soldout = true;
+
   for (const c of candidates) {
     if (!isToylureSource(c)) continue;
     const id = extractId(c);
     if (!id) continue;
 
-    // Broadcast to other tabs/PWA so the main app instance also gets the add
+    // Broadcast to other tabs/PWA
     if (jfChannel) {
-      try { jfChannel.postMessage({type:'jf-add', id:id}); } catch(e){}
+      try {
+        jfChannel.postMessage(Object.assign({type:'jf-add', id:id}, extra));
+      } catch(e){}
     }
 
-    // Also write to localStorage queue as fallback
+    // localStorage queue fallback
     try {
       const queue = JSON.parse(localStorage.getItem('jf_handoff_queue') || '[]');
-      if (!queue.includes(id)) {
-        queue.push(id);
+      const exists = queue.some(q => (typeof q === 'string' ? q === id : q.id === id));
+      if (!exists) {
+        queue.push(Object.assign({id:id}, extra));
         localStorage.setItem('jf_handoff_queue', JSON.stringify(queue));
       }
     } catch(e){}
 
-    // Visually show what's happening in the popup before closing
     if (isAutoclose) {
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;background:#f4efe6;color:#1f2730;"><div style="font-size:48px;">✓</div><div style="font-size:18px;font-weight:700;margin-top:16px;">' + id + '</div><div style="font-size:13px;color:#5c6670;margin-top:8px;">追加しました</div></div>';
-      setTimeout(() => { try { window.close(); } catch(e){} }, 600);
+      const priceTxt = extra.priceTax ? '<div style="font-size:14px;color:#b85c38;margin-top:6px;">¥' + extra.priceTax.toLocaleString() + '</div>' : '';
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;background:#f4efe6;color:#1f2730;"><div style="font-size:48px;">✓</div><div style="font-size:18px;font-weight:700;margin-top:16px;">' + id + '</div>' + priceTxt + '<div style="font-size:13px;color:#5c6670;margin-top:8px;">追加しました</div></div>';
+      setTimeout(() => { try { window.close(); } catch(e){} }, 700);
       return;
     }
 
@@ -1607,14 +1673,7 @@ function handleShareTarget() {
       return;
     }
 
-    // Top-level navigation (e.g. mobile share target)
-    if (addItem(id)) {
-      lastFlashId = id;
-      if (filterStatus !== 'all' && filterStatus !== 'wanted') filterStatus = 'all';
-      toast('🎣 共有から追加: ' + id, 'success');
-    } else {
-      toast(id + ' は既に登録済み');
-    }
+    processBookmarkletAdd(id, extra);
     history.replaceState(null, '', location.pathname);
     return;
   }
@@ -1626,7 +1685,6 @@ function handleShareTarget() {
     history.replaceState(null, '', location.pathname);
   }
 
-  // If autoclose was requested but no valid ID found, still close the window
   if (isAutoclose) {
     setTimeout(() => { try { window.close(); } catch(e){} }, 1000);
   }
@@ -1660,55 +1718,99 @@ async function tryClipboardAdd() {
 }
 
 /* ============== PC bookmarklet via popup ============== */
-function processBookmarkletAdd(id) {
+function processBookmarkletAdd(id, extra) {
   if (!id) return;
   id = String(id).toUpperCase();
   if (!/^[A-Z]+-\d+$/.test(id)) return;
-  if (addItem(id)) {
-    lastFlashId = id;
-    if (filterStatus !== 'all' && filterStatus !== 'wanted') filterStatus = 'all';
-    if (searchQuery && !id.toLowerCase().includes(searchQuery.toLowerCase())) {
-      document.getElementById('searchInput').value = '';
-      searchQuery = '';
+
+  const existing = items.find(i => i.id === id);
+  if (existing) {
+    // Update price/title if we got new info
+    let updated = false;
+    if (extra) {
+      if (extra.priceTax && existing.priceTax !== extra.priceTax) { existing.priceTax = extra.priceTax; updated = true; }
+      if (extra.priceOrig && existing.priceOrig !== extra.priceOrig) { existing.priceOrig = extra.priceOrig; updated = true; }
+      if (extra.title && !existing.title) { existing.title = extra.title; updated = true; }
+      if (extra.soldout && existing.status === 'wanted') { existing.status = 'soldout'; updated = true; }
     }
-    render();
-    toast('🎣 追加: ' + id, 'success');
-  } else {
-    toast(id + ' は登録済み');
+    if (updated) { save(); render(); toast(id + ' の情報を更新', 'success'); }
+    else toast(id + ' は登録済み');
+    return;
   }
+
+  const newItem = {
+    id,
+    addedAt: new Date().toISOString(),
+    status: 'wanted',
+    title: '',
+    note: ''
+  };
+  if (extra) {
+    if (extra.priceTax) newItem.priceTax = extra.priceTax;
+    if (extra.priceOrig) newItem.priceOrig = extra.priceOrig;
+    if (extra.title) newItem.title = extra.title;
+    if (extra.soldout) newItem.status = 'soldout';
+  }
+  items.push(newItem);
+  save();
+  scheduleSyncPush();
+
+  lastFlashId = id;
+  if (filterStatus !== 'all' && filterStatus !== newItem.status) filterStatus = 'all';
+  if (searchQuery && !id.toLowerCase().includes(searchQuery.toLowerCase())) {
+    document.getElementById('searchInput').value = '';
+    searchQuery = '';
+  }
+  render();
+  const priceTxt = extra && extra.priceTax ? ' ¥' + extra.priceTax.toLocaleString() : '';
+  toast('🎣 追加: ' + id + priceTxt, 'success');
 }
 
-// 1. postMessage from popup window (works when shop opened via "ショップを開く" button)
+// 1. postMessage from popup window
 window.addEventListener('message', function(e) {
   if (!e.origin || !e.origin.includes('toylure.com')) return;
   const d = e.data;
   if (!d || typeof d !== 'object') return;
-  if (d.type === 'jf-add' && d.id) processBookmarkletAdd(d.id);
+  if (d.type === 'jf-add' && d.id) {
+    processBookmarkletAdd(d.id, {
+      priceTax: d.priceTax,
+      priceOrig: d.priceOrig,
+      title: d.title,
+      soldout: d.soldout
+    });
+  }
 });
 
-// 2. BroadcastChannel for same-origin cross-tab communication (PWA + tabs)
+// 2. BroadcastChannel for same-origin cross-tab communication
 let jfChannel = null;
 if (typeof BroadcastChannel !== 'undefined') {
   try {
     jfChannel = new BroadcastChannel('jf-favorites');
     jfChannel.addEventListener('message', e => {
       const d = e.data;
-      if (d && d.type === 'jf-add' && d.id) processBookmarkletAdd(d.id);
+      if (d && d.type === 'jf-add' && d.id) {
+        processBookmarkletAdd(d.id, {
+          priceTax: d.priceTax,
+          priceOrig: d.priceOrig,
+          title: d.title,
+          soldout: d.soldout
+        });
+      }
     });
   } catch (e) { console.warn('BroadcastChannel unavailable'); }
 }
 
-// 3. localStorage event listener (cross-tab fallback for older browsers)
+// 3. localStorage event listener
 window.addEventListener('storage', e => {
   if (e.key === 'jf_pending_add' && e.newValue) {
     try {
       const data = JSON.parse(e.newValue);
-      if (data && data.id) processBookmarkletAdd(data.id);
+      if (data && data.id) processBookmarkletAdd(data.id, data);
     } catch (err) {}
   }
 });
 
-// 4. Polling for handoff via localStorage (works even from completely separate origins via the relay below)
+// 4. Polling for handoff via localStorage
 let pollInterval = null;
 function startHandoffPolling() {
   if (pollInterval) return;
@@ -1718,10 +1820,12 @@ function startHandoffPolling() {
       if (!pending) return;
       const queue = JSON.parse(pending);
       if (!Array.isArray(queue) || queue.length === 0) return;
-      // Process all pending IDs
-      const ids = queue.slice();
+      const items = queue.slice();
       localStorage.removeItem('jf_handoff_queue');
-      ids.forEach(id => processBookmarkletAdd(id));
+      items.forEach(entry => {
+        if (typeof entry === 'string') processBookmarkletAdd(entry);
+        else if (entry && entry.id) processBookmarkletAdd(entry.id, entry);
+      });
     } catch (e) {}
   }, 1000);
 }
