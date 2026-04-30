@@ -1,6 +1,6 @@
 // Service Worker for JUNK FOOD Tracker PWA
 // Bump CACHE_NAME whenever index.html or sw.js changes to force refresh
-const CACHE_NAME = 'jf-favorites-v4';
+const CACHE_NAME = 'jf-favorites-v6';
 const ASSETS = [
   './',
   './index.html',
